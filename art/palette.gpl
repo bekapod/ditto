@@ -1,0 +1,8 @@
+GIMP Palette
+Name: DMG greens
+Columns: 4
+#
+  15   56   15	DMG darkest
+  48   98   48	DMG dark
+ 139  172   15	DMG light
+ 155  188   15	DMG lightest
