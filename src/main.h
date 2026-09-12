@@ -7,6 +7,7 @@ enum {
     STATE_TITLE_INIT,
     STATE_TITLE,
     STATE_PLAY_INIT,
+    STATE_PLAY_FADE_IN,
     STATE_PLAY
 };
 
