@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+env:
+  GBDK_VERSION: "4.5.0"
+  GBDK_SHA256: d7857a5f6d135ee4c249043ca26aad9f2ec8ab5d4106d97720d404114f42605c
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install GBDK
+        run: |
+          curl -fsSL -o gbdk.tar.gz "https://github.com/gbdk-2020/gbdk-2020/releases/download/${GBDK_VERSION}/gbdk-linux64.tar.gz"
+          echo "${GBDK_SHA256}  gbdk.tar.gz" | sha256sum -c
+          tar -xzf gbdk.tar.gz -C "$HOME"
+          echo "GBDK_HOME=$HOME/gbdk/" >> "$GITHUB_ENV"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: tests/uv.lock
+
+      - name: Build ROM
+        run: make
+
+      - name: Run tests
+        run: make test
