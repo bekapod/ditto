@@ -1,9 +1,13 @@
 #include <gb/gb.h>
 #include <gbdk/platform.h>
 
+#include "audio.h"
 #include "input.h"
 #include "main.h"
+#include "music.h"
 #include "sfx.h"
+
+extern const hUGESong_t placeholder;
 
 uint8_t state = STATE_TITLE_INIT;
 
@@ -12,6 +16,8 @@ void title_init(void) {
 }
 
 void title_update(void) {
+    if (input_pressed & J_A)
+        audio_play_test_sfx();
     if (input_pressed & J_START)
         state = STATE_PLAY_INIT;
 }
@@ -30,6 +36,8 @@ void main(void) {
 
     sfx_init();
     add_VBL(sfx_tick);
+    add_VBL(hUGE_dosound);
+    music_play(&placeholder);
 
     while (1) {
         vsync();
