@@ -1,4 +1,5 @@
 build/
+res/
 .tools/
 *.aseprite
 .clangd

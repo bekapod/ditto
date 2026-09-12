@@ -2,23 +2,38 @@
 #include <gbdk/platform.h>
 
 #include "audio.h"
+#include "blink.h"
 #include "fade.h"
 #include "input.h"
 #include "main.h"
 #include "music.h"
 #include "sfx.h"
+#include "text.h"
 
 extern const hUGESong_t placeholder;
+extern const uint8_t font_tiles[];
+
+static const uint8_t empty_background[32 * 32] = {0};
 
 #define FADE_FRAMES_PER_STEP 4
 
 uint8_t state = STATE_TITLE_INIT;
+static blink_state_t title_prompt;
+static uint16_t score;
 
 void title_init(void) {
+    blink_init(&title_prompt);
+    text_print(8, 8, "PUSH START");
     state = STATE_TITLE;
 }
 
 void title_update(void) {
+    blink_tick(&title_prompt);
+    if (title_prompt.dirty) {
+        text_print(8, 8, title_prompt.visible ? "PUSH START" : "          ");
+        title_prompt.dirty = 0;
+    }
+
     if (input_pressed & J_A)
         audio_play_test_sfx();
     if (input_pressed & J_START) {
@@ -31,6 +46,12 @@ void play_init(void) {
     if (fade_active)
         return;
 
+    score = 0;
+    DISPLAY_OFF;
+    set_bkg_tiles(0, 0, 32, 32, empty_background);
+    text_print(8, 8, "SCORE");
+    text_digits(14, 8, score, 5);
+    DISPLAY_ON;
     fade_in(FADE_FRAMES_PER_STEP);
     state = STATE_PLAY_FADE_IN;
 }
@@ -41,12 +62,18 @@ void play_fade_in(void) {
 }
 
 void play_update(void) {
+    text_digits(14, 8, score++, 5);
 }
 
 void main(void) {
     BGP_REG = 0xE4;
     OBP0_REG = 0xE4;
     OBP1_REG = 0x1B;
+
+    text_init(font_tiles);
+    set_bkg_tiles(0, 0, 32, 32, empty_background);
+    SHOW_BKG;
+    DISPLAY_ON;
 
     sfx_init();
     add_VBL(sfx_tick);
@@ -57,6 +84,7 @@ void main(void) {
     while (1) {
         vsync();
         input_update();
+        text_vblank();
 
         switch (state) {
         case STATE_TITLE_INIT:
