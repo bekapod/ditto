@@ -141,7 +141,7 @@ static void title_update(void) {
         menu_open(title_items, 2U, 8U, 8U);
         return;
     }
-    if (event.action != MENU_CONFIRM && !(input_pressed & J_START))
+    if (event.action != MENU_CONFIRM && !(input_pressed(J_START)))
         return;
     if (menu_selected() == 0U)
         title_start();
@@ -183,7 +183,7 @@ static void pause_init(void) {
 }
 
 static void pause_update(void) {
-    if (input_pressed & J_START)
+    if (input_pressed(J_START))
         state_pop();
 }
 
@@ -204,16 +204,16 @@ static void play_shake(void) {
 static void play_update(void) {
     if (fade_active)
         return;
-    if (input_pressed & J_B) {
+    if (input_pressed(J_B)) {
         state_replace(&title_state);
         return;
     }
-    if (input_pressed & J_START) {
+    if (input_pressed(J_START)) {
         state_push(&pause_state);
         return;
     }
 
-    if (input_pressed & J_SELECT) {
+    if (input_pressed(J_SELECT)) {
         play_scroll_speed = play_scroll_speed == SCROLL_SPEED_SLOW
                                 ? SCROLL_SPEED_FAST
                                 : SCROLL_SPEED_SLOW;
@@ -228,7 +228,7 @@ static void play_update(void) {
     draw_score_hud();
     save_data.score = score;
     save_write(DITTO_SAVE_VERSION, &save_data, sizeof(save_data));
-    if (input_pressed & J_A) {
+    if (input_pressed(J_A)) {
         seq_push(play_flash, 4);
         seq_push(play_shake, 6);
         seq_push(0, 10);
