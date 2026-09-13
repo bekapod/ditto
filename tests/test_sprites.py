@@ -2,7 +2,9 @@ import helpers
 
 
 TEXT_TILE_BASE = 1
+MENU_CURSOR_TILE = 0xFE
 OAM = 0xFE00
+VRAM = 0x8000
 
 
 def sprite(pyboy, slot):
@@ -25,14 +27,15 @@ def test_state_sprite_cleanup(gb):
     pyboy = gb.pyboy
 
     y, x, tile, prop = sprite(pyboy, 0)
-    assert (y, x, tile) == (80, 72, TEXT_TILE_BASE + 39)
+    assert (y, x, tile) == (80, 72, MENU_CURSOR_TILE)
     assert prop == 0
+    assert any(pyboy.memory[VRAM + MENU_CURSOR_TILE * 16 : VRAM + (MENU_CURSOR_TILE + 1) * 16])
     assert all(sprite(pyboy, slot)[0] == 0 for slot in range(1, 40))
 
     pyboy.button_press("left")
     pyboy.tick(2, render=False)
     assert sprite(pyboy, 0)[:2] == (88, 72)
-    for _ in range(14):
+    for _ in range(13):
         pyboy.tick(1, render=False)
         assert sprite(pyboy, 0)[:2] == (88, 72)
     pyboy.tick(1, render=False)

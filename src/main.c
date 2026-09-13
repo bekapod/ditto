@@ -225,6 +225,7 @@ void main(void) {
         spr_hide_unused();
         seq_tick();
         vsync();
+        text_vblank();
         bg_flush();
     }
 }
