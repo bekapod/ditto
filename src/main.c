@@ -18,13 +18,12 @@ typedef struct {
 } save_t;
 
 static uint16_t run_seed;
-static blink_state_t title_prompt;
 static uint16_t score;
 static save_t save_data;
 static uint8_t run_seed_captured;
 static uint8_t load_saved_score = 1U;
-static uint8_t title_cursor = SPR_NONE;
 static uint8_t play_block = SPR_NONE;
+static const char *const title_items[] = {"START", "SOUND TEST"};
 
 static void title_init(void);
 static void title_update(void);
@@ -54,37 +53,39 @@ static void title_init(void) {
     set_bkg_tiles(0, 0, 32, 32, empty_background);
     DISPLAY_ON;
 
+    menu_close();
     spr_reset();
-    title_cursor = spr_alloc(1U);
-    if (title_cursor != SPR_NONE) {
-        spr_tile(title_cursor, TEXT_TILE_BASE + 39U);
-        spr_prop(title_cursor, 0U);
-        spr_move(title_cursor, 64U, 80U);
-    }
+    menu_open(title_items, 2U, 8U, 8U);
 
     save_data.version = DITTO_SAVE_VERSION;
     if (!save_load(&save_data, sizeof(save_data)))
         save_data.version = DITTO_SAVE_VERSION;
-    blink_init(&title_prompt);
-    text_print(8, 8, "PUSH START");
+}
+
+static void title_start(void) {
+    if (run_seed_captured)
+        return;
+    run_seed = sys_time;
+    rng_init(&rng_global, run_seed);
+    run_seed_captured = 1;
+    menu_close();
+    fade_out(FADE_FRAMES_PER_STEP);
+    state_replace(&play_wait_state);
 }
 
 static void title_update(void) {
-    blink_tick(&title_prompt);
-    if (title_prompt.dirty) {
-        text_print(8, 8, title_prompt.visible ? "PUSH START" : "          ");
-        title_prompt.dirty = 0;
-    }
+    uint8_t result = menu_tick();
 
-    if (input_pressed & J_A)
-        audio_play_test_sfx();
-    if ((input_pressed & J_START) && !run_seed_captured) {
-        run_seed = sys_time;
-        rng_init(&rng_global, run_seed);
-        run_seed_captured = 1;
-        fade_out(FADE_FRAMES_PER_STEP);
-        state_replace(&play_wait_state);
+    if (result == MENU_CANCEL) {
+        menu_open(title_items, 2U, 8U, 8U);
+        return;
     }
+    if (result != MENU_CONFIRM && !(input_pressed & J_START))
+        return;
+    if (menu_selected() == 0U)
+        title_start();
+    else
+        audio_play_test_sfx();
 }
 
 static void play_wait_update(void) {
