@@ -12,8 +12,8 @@ static const uint8_t empty_background[32 * 32] = {0};
 static uint8_t scroll_columns[32][18];
 
 #define FADE_FRAMES_PER_STEP 4
-#define SCROLL_SPEED_SLOW 0x0100U
-#define SCROLL_SPEED_FAST 0x0180U
+#define SCROLL_SPEED_SLOW SCROLL_SPEED_PX(1)
+#define SCROLL_SPEED_FAST SCROLL_SPEED_PX(3) / 2
 #define HUD_SCORE_SPRITE_COUNT 10U
 #define HUD_SCORE_X 88U
 #define HUD_SCORE_Y 16U
