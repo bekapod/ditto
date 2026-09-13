@@ -197,7 +197,7 @@ static void play_flash(void) {
 }
 
 static void play_shake(void) {
-    shake(6, 2);
+    camera_shake(6, 2);
 }
 
 static void play_update(void) {
