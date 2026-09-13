@@ -2,6 +2,7 @@
 #include <gbdk/platform.h>
 
 #include "audio.h"
+#include "bg.h"
 #include "blink.h"
 #include "fade.h"
 #include "flash.h"
@@ -117,6 +118,7 @@ void main(void) {
 
     while (1) {
         vsync();
+        bg_flush();
         input_update();
         seq_tick();
         text_vblank();
