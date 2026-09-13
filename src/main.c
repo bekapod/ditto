@@ -48,6 +48,11 @@ static const state_t pause_state = {
 };
 
 static void title_init(void) {
+    run_seed_captured = 0;
+    DISPLAY_OFF;
+    set_bkg_tiles(0, 0, 32, 32, empty_background);
+    DISPLAY_ON;
+
     spr_reset();
     title_cursor = spr_alloc(1U);
     if (title_cursor != SPR_NONE) {
