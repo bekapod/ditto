@@ -4,9 +4,12 @@
 #include "audio.h"
 #include "blink.h"
 #include "fade.h"
+#include "flash.h"
 #include "input.h"
 #include "main.h"
 #include "music.h"
+#include "seq.h"
+#include "shake.h"
 #include "sfx.h"
 #include "text.h"
 
@@ -61,8 +64,25 @@ void play_fade_in(void) {
         state = STATE_PLAY;
 }
 
+static void play_flash(void) {
+    flash(4);
+}
+
+static void play_shake(void) {
+    shake(6, 2);
+}
+
 void play_update(void) {
+    if (seq_busy())
+        return;
+
     text_digits(14, 8, score++, 5);
+    if (input_pressed & J_A) {
+        seq_push(play_flash, 4);
+        seq_push(play_shake, 6);
+        seq_push(0, 10);
+        seq_push(audio_play_test_sfx, 0);
+    }
 }
 
 void main(void) {
@@ -78,12 +98,15 @@ void main(void) {
     sfx_init();
     add_VBL(sfx_tick);
     add_VBL(fade_tick);
+    add_VBL(shake_tick);
+    add_VBL(flash_tick);
     add_VBL(hUGE_dosound);
     music_play(&placeholder);
 
     while (1) {
         vsync();
         input_update();
+        seq_tick();
         text_vblank();
 
         switch (state) {
