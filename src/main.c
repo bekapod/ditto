@@ -2,6 +2,7 @@
 #include <gbdk/platform.h>
 
 #include "audio.h"
+#include "debug_math.h"
 #include "pallet.h"
 
 extern const hUGESong_t placeholder;
@@ -238,6 +239,7 @@ void main(void) {
     BGP_REG = 0xE4;
     OBP0_REG = 0xE4;
     OBP1_REG = 0x1B;
+    debug_math_cases();
 
     text_init(font_tiles);
     set_bkg_tiles(0, 0, 32, 32, empty_background);
