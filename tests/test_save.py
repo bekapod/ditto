@@ -3,9 +3,6 @@ from pathlib import Path
 from pyboy import PyBoy
 
 import helpers
-import rom_adapter
-
-
 SAVE_FILE = helpers.ROOT / "build" / "ditto.sav"
 
 
@@ -20,18 +17,11 @@ def open_game(ram_file):
     )
 
 
-def state_of(pyboy):
-    return pyboy.memory[pyboy.symbol_lookup(rom_adapter.symbol("state"))]
-
-
 def boot_to_play(pyboy):
     helpers.wait_for_boot(pyboy, "title_update")
     pyboy.button("start")
-    for _ in range(helpers.BOOT_CAP_FRAMES):
-        pyboy.tick(1, render=False)
-        if state_of(pyboy) == 4:
-            return
-    raise RuntimeError("ROM did not reach play within the boot frame cap")
+    helpers.wait_for_callback(pyboy, "play_update")
+    pyboy.tick(20, render=False)
 
 
 def test_score_survives_power_cycle():

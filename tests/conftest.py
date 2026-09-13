@@ -13,15 +13,6 @@ class Harness:
     def __init__(self, pyboy):
         self.pyboy = pyboy
 
-    @property
-    def state(self):
-        return self.pyboy.memory[self.pyboy.symbol_lookup(rom_adapter.symbol("state"))]
-
-
-@pytest.fixture(scope="session")
-def states():
-    return rom_adapter.states()
-
 
 @pytest.fixture
 def gb():
