@@ -18,9 +18,17 @@ void debug_math_cases(void) {
     debug_fx_cases[8] = FX_CLAMP(FX(0), FX(-1), FX(1));
     debug_fx_cases[9] = FX_CLAMP(FX(2), FX(-1), FX(1));
 
-    debug_hit_cases[0] = hit_aabb(0, 0, 10, 10, 10, 0, 10, 10);
-    debug_hit_cases[1] = hit_aabb(0, 0, 10, 10, 9, 0, 10, 10);
-    debug_hit_cases[2] = hit_aabb(0, 0, 10, 10, 20, 0, 10, 10);
-    debug_hit_cases[3] = hit_point_in(10, 20, 10, 20, 8, 8);
-    debug_hit_cases[4] = hit_point_in(18, 20, 10, 20, 8, 8);
+    {
+        static const hitbox_t a = {0, 0, 10, 10};
+        static const hitbox_t miss = {10, 0, 10, 10};
+        static const hitbox_t overlap = {9, 0, 10, 10};
+        static const hitbox_t far = {20, 0, 10, 10};
+        static const hitbox_t box = {10, 20, 8, 8};
+
+        debug_hit_cases[0] = hit_overlaps(a, miss);
+        debug_hit_cases[1] = hit_overlaps(a, overlap);
+        debug_hit_cases[2] = hit_overlaps(a, far);
+        debug_hit_cases[3] = hit_contains(box, 10, 20);
+        debug_hit_cases[4] = hit_contains(box, 18, 20);
+    }
 }
