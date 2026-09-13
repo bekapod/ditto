@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pyboy import PyBoy
 
-sys.path.insert(0, str(Path(__file__).parents[1] / "engine" / "tools"))
+sys.path.insert(0, str(Path(__file__).parents[1] / "tools"))
 import helpers
 import rom_adapter
 

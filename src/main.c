@@ -8,6 +8,7 @@
 #include "input.h"
 #include "main.h"
 #include "music.h"
+#include "rng.h"
 #include "seq.h"
 #include "shake.h"
 #include "sfx.h"
@@ -22,8 +23,10 @@ static const uint8_t empty_background[32 * 32] = {0};
 #define FADE_FRAMES_PER_STEP 4
 
 uint8_t state = STATE_TITLE_INIT;
+uint16_t run_seed;
 static blink_state_t title_prompt;
 static uint16_t score;
+static uint8_t run_seed_captured;
 
 void title_init(void) {
     blink_init(&title_prompt);
@@ -40,7 +43,10 @@ void title_update(void) {
 
     if (input_pressed & J_A)
         audio_play_test_sfx();
-    if (input_pressed & J_START) {
+    if ((input_pressed & J_START) && !run_seed_captured) {
+        run_seed = sys_time;
+        rng_init(&rng_global, run_seed);
+        run_seed_captured = 1;
         fade_out(FADE_FRAMES_PER_STEP);
         state = STATE_PLAY_INIT;
     }

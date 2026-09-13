@@ -12,5 +12,6 @@ enum {
 };
 
 extern uint8_t state;
+extern uint16_t run_seed;
 
 #endif
