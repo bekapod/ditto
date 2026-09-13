@@ -12,6 +12,7 @@
 #include "shake.h"
 #include "sfx.h"
 #include "text.h"
+#include "vblank.h"
 
 extern const hUGESong_t placeholder;
 extern const uint8_t font_tiles[];
@@ -96,10 +97,7 @@ void main(void) {
     DISPLAY_ON;
 
     sfx_init();
-    add_VBL(sfx_tick);
-    add_VBL(fade_tick);
-    add_VBL(shake_tick);
-    add_VBL(flash_tick);
+    add_VBL(pallet_vblank_tick);
     add_VBL(hUGE_dosound);
     music_play(&placeholder);
 
