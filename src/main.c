@@ -23,7 +23,6 @@ static uint8_t scroll_columns[32][18];
 #define DITTO_SAVE_VERSION 1U
 
 typedef struct {
-    uint8_t version;
     uint16_t score;
 } save_t;
 
@@ -117,9 +116,8 @@ static void title_init(void) {
     spr_reset();
     menu_open(title_items, 2U, 8U, 8U);
 
-    save_data.version = DITTO_SAVE_VERSION;
-    if (!save_load(&save_data, sizeof(save_data)))
-        save_data.version = DITTO_SAVE_VERSION;
+    load_saved_score =
+        save_load(DITTO_SAVE_VERSION, &save_data, sizeof(save_data)) == SAVE_OK;
 }
 
 static void title_start(void) {
@@ -226,7 +224,7 @@ static void play_update(void) {
     score++;
     draw_score_hud();
     save_data.score = score;
-    save_write(&save_data, sizeof(save_data));
+    save_write(DITTO_SAVE_VERSION, &save_data, sizeof(save_data));
     if (input_pressed & J_A) {
         seq_push(play_flash, 4);
         seq_push(play_shake, 6);
