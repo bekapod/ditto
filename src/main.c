@@ -33,7 +33,10 @@ static uint8_t run_seed_captured;
 static uint8_t load_saved_score = 1U;
 static uint8_t score_hud = SPR_NONE;
 static uint8_t pause_hud = SPR_NONE;
-static const char *const title_items[] = {"START", "SOUND TEST"};
+static const menu_item_t title_items[] = {
+    {"START", 0},
+    {"SOUND TEST", 0},
+};
 static const char score_label[] = "SCORE";
 static const char pause_label[] = "PAUSED";
 static uint16_t play_scroll_speed;
@@ -132,13 +135,13 @@ static void title_start(void) {
 }
 
 static void title_update(void) {
-    uint8_t result = menu_tick();
+    menu_event_t event = menu_tick();
 
-    if (result == MENU_CANCEL) {
+    if (event.action == MENU_CANCEL) {
         menu_open(title_items, 2U, 8U, 8U);
         return;
     }
-    if (result != MENU_CONFIRM && !(input_pressed & J_START))
+    if (event.action != MENU_CONFIRM && !(input_pressed & J_START))
         return;
     if (menu_selected() == 0U)
         title_start();
