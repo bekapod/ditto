@@ -22,6 +22,8 @@ static blink_state_t title_prompt;
 static uint16_t score;
 static save_t save_data;
 static uint8_t run_seed_captured;
+static uint8_t title_cursor = SPR_NONE;
+static uint8_t play_block = SPR_NONE;
 
 static void title_init(void);
 static void title_update(void);
@@ -46,6 +48,14 @@ static const state_t pause_state = {
 };
 
 static void title_init(void) {
+    spr_reset();
+    title_cursor = spr_alloc(1U);
+    if (title_cursor != SPR_NONE) {
+        spr_tile(title_cursor, TEXT_TILE_BASE + 39U);
+        spr_prop(title_cursor, 0U);
+        spr_move(title_cursor, 64U, 80U);
+    }
+
     save_data.version = DITTO_SAVE_VERSION;
     if (!save_load(&save_data, sizeof(save_data)))
         save_data.version = DITTO_SAVE_VERSION;
@@ -77,6 +87,20 @@ static void play_wait_update(void) {
 }
 
 static void play_init(void) {
+    uint8_t slot;
+    static const uint8_t x[] = {64U, 72U, 64U, 72U};
+    static const uint8_t y[] = {112U, 112U, 120U, 120U};
+
+    spr_reset();
+    play_block = spr_alloc(4U);
+    if (play_block != SPR_NONE) {
+        for (slot = 0; slot < 4U; slot++) {
+            spr_tile((uint8_t)(play_block + slot), TEXT_TILE_BASE + 39U);
+            spr_prop((uint8_t)(play_block + slot), 0U);
+            spr_move((uint8_t)(play_block + slot), x[slot], y[slot]);
+        }
+    }
+
     score = save_data.score;
     DISPLAY_OFF;
     set_bkg_tiles(0, 0, 32, 32, empty_background);
@@ -108,9 +132,14 @@ static void play_shake(void) {
 }
 
 static void play_update(void) {
-    if (fade_active || (input_pressed & J_START)) {
-        if (!fade_active && (input_pressed & J_START))
-            state_push(&pause_state);
+    if (fade_active)
+        return;
+    if (input_pressed & J_B) {
+        state_replace(&title_state);
+        return;
+    }
+    if (input_pressed & J_START) {
+        state_push(&pause_state);
         return;
     }
 
@@ -137,6 +166,7 @@ void main(void) {
     text_init(font_tiles);
     set_bkg_tiles(0, 0, 32, 32, empty_background);
     SHOW_BKG;
+    SHOW_SPRITES;
     DISPLAY_ON;
 
     sfx_init();
@@ -148,6 +178,7 @@ void main(void) {
     while (1) {
         input_update();
         state_tick();
+        spr_hide_unused();
         seq_tick();
         vsync();
         bg_flush();

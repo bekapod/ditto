@@ -3,3 +3,4 @@ res/
 .tools/
 *.aseprite
 .clangd
+__pycache__/
