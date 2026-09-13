@@ -10,6 +10,17 @@ SYM = rom_adapter.SYM
 BOOT_CAP_FRAMES = 600
 
 
+def symbol_address(name: str) -> int:
+    """Resolve an exact .sym symbol name to its address."""
+    with open(SYM) as sym_file:
+        for line in sym_file:
+            parts = line.split()
+            if len(parts) >= 2 and parts[1] == name:
+                address = parts[0].split(":")[1]
+                return int(address, 16)
+    raise ValueError(f"Symbol not found: {name}")
+
+
 def wait_for_boot(pyboy, hook_name: str) -> None:
     wait_for_callback(pyboy, hook_name)
 

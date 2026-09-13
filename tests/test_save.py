@@ -44,9 +44,10 @@ def test_score_survives_power_cycle():
 
         assert SAVE_FILE.exists()
         raw_save = SAVE_FILE.read_bytes()
+        # Header: magic, schema version, checksum; then the payload.
         assert raw_save[0] == 0xA5
         assert raw_save[1] == 1
-        assert int.from_bytes(raw_save[2:4], "little") != 0
+        assert int.from_bytes(raw_save[3:5], "little") != 0
 
         second_ram = SAVE_FILE.open("r+b")
         second = open_game(second_ram)

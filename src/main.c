@@ -236,6 +236,10 @@ static void play_update(void) {
     }
 }
 
+static const pallet_game_t ditto_game = {
+    &title_state, &placeholder, 0
+};
+
 void main(void) {
     BGP_REG = 0xE4;
     OBP0_REG = 0xE4;
@@ -248,19 +252,5 @@ void main(void) {
     SHOW_SPRITES;
     DISPLAY_ON;
 
-    sfx_init();
-    add_VBL(pallet_vblank_tick);
-    add_VBL(hUGE_dosound);
-    music_play(&placeholder);
-    state_push(&title_state);
-
-    while (1) {
-        input_update();
-        state_tick();
-        spr_hide_unused();
-        seq_tick();
-        vsync();
-        text_vblank();
-        bg_flush();
-    }
+    pallet_run(&ditto_game);
 }
