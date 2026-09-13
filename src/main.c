@@ -13,6 +13,12 @@ static uint8_t scroll_columns[32][18];
 #define FADE_FRAMES_PER_STEP 4
 #define SCROLL_SPEED_SLOW 0x0100U
 #define SCROLL_SPEED_FAST 0x0180U
+#define HUD_SCORE_SPRITE_COUNT 10U
+#define HUD_SCORE_X 88U
+#define HUD_SCORE_Y 16U
+#define PAUSE_HUD_SPRITE_COUNT 6U
+#define PAUSE_HUD_X 56U
+#define PAUSE_HUD_Y 80U
 #define DITTO_SAVE_VERSION 1U
 
 typedef struct {
@@ -25,8 +31,11 @@ static uint16_t score;
 static save_t save_data;
 static uint8_t run_seed_captured;
 static uint8_t load_saved_score = 1U;
-static uint8_t play_block = SPR_NONE;
+static uint8_t score_hud = SPR_NONE;
+static uint8_t pause_hud = SPR_NONE;
 static const char *const title_items[] = {"START", "SOUND TEST"};
+static const char score_label[] = "SCORE";
+static const char pause_label[] = "PAUSED";
 static uint16_t play_scroll_speed;
 
 static void play_scroll_column(uint8_t map_col, uint8_t world_col) {
@@ -36,6 +45,39 @@ static void play_scroll_column(uint8_t map_col, uint8_t world_col) {
         scroll_columns[map_col][row] =
             (uint8_t)(TEXT_TILE_BASE + ((world_col + row) & 3U));
     bg_put_col(map_col, 0U, scroll_columns[map_col], 18U);
+}
+
+static void draw_pause_hud(void) {
+    uint8_t index;
+
+    if (pause_hud == SPR_NONE)
+        return;
+    for (index = 0; index < PAUSE_HUD_SPRITE_COUNT; index++) {
+        spr_tile((uint8_t)(pause_hud + index), text_sprite_tile(pause_label[index]));
+        spr_move((uint8_t)(pause_hud + index),
+                 (uint8_t)(PAUSE_HUD_X + index * 8U), PAUSE_HUD_Y);
+    }
+}
+
+static void draw_score_hud(void) {
+    uint8_t index;
+    uint16_t value = score;
+
+    if (score_hud == SPR_NONE)
+        return;
+    for (index = 0; index < 5U; index++) {
+        spr_tile((uint8_t)(score_hud + index), text_sprite_tile(score_label[index]));
+        spr_move((uint8_t)(score_hud + index),
+                 (uint8_t)(HUD_SCORE_X + index * 8U), HUD_SCORE_Y);
+    }
+    for (index = 5U; index; index--) {
+        uint8_t slot = (uint8_t)(score_hud + index + 4U);
+
+        spr_tile(slot, text_sprite_tile((char)('0' + value % 10U)));
+        spr_move(slot, (uint8_t)(HUD_SCORE_X + (index + 4U) * 8U),
+                 HUD_SCORE_Y);
+        value /= 10U;
+    }
 }
 
 static void title_init(void);
@@ -111,10 +153,6 @@ static void play_wait_update(void) {
 }
 
 static void play_init(void) {
-    uint8_t slot;
-    static const uint8_t x[] = {64U, 72U, 64U, 72U};
-    static const uint8_t y[] = {112U, 112U, 120U, 120U};
-
     DISPLAY_OFF;
     while (bg_pending())
         bg_flush();
@@ -127,26 +165,19 @@ static void play_init(void) {
         bg_flush();
 
     spr_reset();
-    play_block = spr_alloc(4U);
-    if (play_block != SPR_NONE) {
-        for (slot = 0; slot < 4U; slot++) {
-            spr_tile((uint8_t)(play_block + slot), TEXT_TILE_BASE + 39U);
-            spr_prop((uint8_t)(play_block + slot), 0U);
-            spr_move((uint8_t)(play_block + slot), x[slot], y[slot]);
-        }
-    }
-
+    pause_hud = SPR_NONE;
     score = load_saved_score ? save_data.score : 0;
     load_saved_score = 0;
-    text_print(8, 8, "SCORE");
-    text_digits(14, 8, score, 5);
+    score_hud = spr_alloc(HUD_SCORE_SPRITE_COUNT);
+    draw_score_hud();
     DISPLAY_ON;
     fade_in(FADE_FRAMES_PER_STEP);
 }
 
 static void pause_init(void) {
     scroll_pause();
-    text_print(8, 10, "PAUSED");
+    pause_hud = spr_alloc(PAUSE_HUD_SPRITE_COUNT);
+    draw_pause_hud();
 }
 
 static void pause_update(void) {
@@ -155,8 +186,9 @@ static void pause_update(void) {
 }
 
 static void pause_exit(void) {
+    spr_free(pause_hud, PAUSE_HUD_SPRITE_COUNT);
+    pause_hud = SPR_NONE;
     scroll_resume();
-    text_print(8, 10, "      ");
 }
 
 static void play_flash(void) {
@@ -191,7 +223,7 @@ static void play_update(void) {
         return;
 
     score++;
-    text_digits(14, 8, score, 5);
+    draw_score_hud();
     save_data.score = score;
     save_write(&save_data, sizeof(save_data));
     if (input_pressed & J_A) {
