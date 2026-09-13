@@ -22,6 +22,7 @@ static blink_state_t title_prompt;
 static uint16_t score;
 static save_t save_data;
 static uint8_t run_seed_captured;
+static uint8_t load_saved_score = 1U;
 static uint8_t title_cursor = SPR_NONE;
 static uint8_t play_block = SPR_NONE;
 
@@ -106,7 +107,8 @@ static void play_init(void) {
         }
     }
 
-    score = save_data.score;
+    score = load_saved_score ? save_data.score : 0;
+    load_saved_score = 0;
     DISPLAY_OFF;
     set_bkg_tiles(0, 0, 32, 32, empty_background);
     text_print(8, 8, "SCORE");
