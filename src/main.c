@@ -9,6 +9,7 @@
 #include "main.h"
 #include "music.h"
 #include "rng.h"
+#include "save.h"
 #include "seq.h"
 #include "shake.h"
 #include "sfx.h"
@@ -26,9 +27,13 @@ uint8_t state = STATE_TITLE_INIT;
 uint16_t run_seed;
 static blink_state_t title_prompt;
 static uint16_t score;
+static save_t save_data;
 static uint8_t run_seed_captured;
 
 void title_init(void) {
+    save_data.version = DITTO_SAVE_VERSION;
+    if (!save_load(&save_data, sizeof(save_data)))
+        save_data.version = DITTO_SAVE_VERSION;
     blink_init(&title_prompt);
     text_print(8, 8, "PUSH START");
     state = STATE_TITLE;
@@ -56,7 +61,7 @@ void play_init(void) {
     if (fade_active)
         return;
 
-    score = 0;
+    score = save_data.score;
     DISPLAY_OFF;
     set_bkg_tiles(0, 0, 32, 32, empty_background);
     text_print(8, 8, "SCORE");
@@ -83,7 +88,10 @@ void play_update(void) {
     if (seq_busy())
         return;
 
-    text_digits(14, 8, score++, 5);
+    score++;
+    text_digits(14, 8, score, 5);
+    save_data.score = score;
+    save_write(&save_data, sizeof(save_data));
     if (input_pressed & J_A) {
         seq_push(play_flash, 4);
         seq_push(play_shake, 6);

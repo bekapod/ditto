@@ -11,6 +11,12 @@ enum {
     STATE_PLAY
 };
 
+#define DITTO_SAVE_VERSION 1U
+typedef struct {
+    uint8_t version;
+    uint16_t score;
+} save_t;
+
 extern uint8_t state;
 extern uint16_t run_seed;
 
