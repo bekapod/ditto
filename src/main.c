@@ -8,8 +8,11 @@ extern const hUGESong_t placeholder;
 extern const uint8_t font_tiles[];
 
 static const uint8_t empty_background[32 * 32] = {0};
+static uint8_t scroll_columns[32][18];
 
 #define FADE_FRAMES_PER_STEP 4
+#define SCROLL_SPEED_SLOW 0x0100U
+#define SCROLL_SPEED_FAST 0x0180U
 #define DITTO_SAVE_VERSION 1U
 
 typedef struct {
@@ -24,6 +27,16 @@ static uint8_t run_seed_captured;
 static uint8_t load_saved_score = 1U;
 static uint8_t play_block = SPR_NONE;
 static const char *const title_items[] = {"START", "SOUND TEST"};
+static uint16_t play_scroll_speed;
+
+static void play_scroll_column(uint8_t map_col, uint8_t world_col) {
+    uint8_t row;
+
+    for (row = 0; row < 18U; row++)
+        scroll_columns[map_col][row] =
+            (uint8_t)(TEXT_TILE_BASE + ((world_col + row) & 3U));
+    bg_put_col(map_col, 0U, scroll_columns[map_col], 18U);
+}
 
 static void title_init(void);
 static void title_update(void);
@@ -49,7 +62,11 @@ static const state_t pause_state = {
 
 static void title_init(void) {
     run_seed_captured = 0;
+    scroll_set_on_column(0);
+    scroll_reset(0);
     DISPLAY_OFF;
+    while (bg_pending())
+        bg_flush();
     set_bkg_tiles(0, 0, 32, 32, empty_background);
     DISPLAY_ON;
 
@@ -98,6 +115,17 @@ static void play_init(void) {
     static const uint8_t x[] = {64U, 72U, 64U, 72U};
     static const uint8_t y[] = {112U, 112U, 120U, 120U};
 
+    DISPLAY_OFF;
+    while (bg_pending())
+        bg_flush();
+    set_bkg_tiles(0, 0, 32, 32, empty_background);
+    scroll_set_on_column(play_scroll_column);
+    play_scroll_speed = SCROLL_SPEED_SLOW;
+    scroll_set_speed(play_scroll_speed);
+    scroll_reset(0);
+    while (bg_pending())
+        bg_flush();
+
     spr_reset();
     play_block = spr_alloc(4U);
     if (play_block != SPR_NONE) {
@@ -110,8 +138,6 @@ static void play_init(void) {
 
     score = load_saved_score ? save_data.score : 0;
     load_saved_score = 0;
-    DISPLAY_OFF;
-    set_bkg_tiles(0, 0, 32, 32, empty_background);
     text_print(8, 8, "SCORE");
     text_digits(14, 8, score, 5);
     DISPLAY_ON;
@@ -119,6 +145,7 @@ static void play_init(void) {
 }
 
 static void pause_init(void) {
+    scroll_pause();
     text_print(8, 10, "PAUSED");
 }
 
@@ -128,6 +155,7 @@ static void pause_update(void) {
 }
 
 static void pause_exit(void) {
+    scroll_resume();
     text_print(8, 10, "      ");
 }
 
@@ -150,6 +178,14 @@ static void play_update(void) {
         state_push(&pause_state);
         return;
     }
+
+    if (input_pressed & J_SELECT) {
+        play_scroll_speed = play_scroll_speed == SCROLL_SPEED_SLOW
+                                ? SCROLL_SPEED_FAST
+                                : SCROLL_SPEED_SLOW;
+        scroll_set_speed(play_scroll_speed);
+    }
+    scroll_tick();
 
     if (seq_busy())
         return;
