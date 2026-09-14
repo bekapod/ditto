@@ -1,5 +1,12 @@
+import os
+
+import pytest
+
 import helpers
 import rom_adapter
+
+if os.environ.get("ROM_NAME", "ditto") != "ditto-audio":
+    pytest.skip("audio tests run against the ditto-audio example", allow_module_level=True)
 
 
 def test_a_triggers_the_temporary_sfx_after_sequence(gb):

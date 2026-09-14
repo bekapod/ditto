@@ -1,6 +1,12 @@
+import os
 import struct
 
+import pytest
+
 import rom_adapter
+
+if os.environ.get("ROM_NAME", "ditto") != "ditto":
+    pytest.skip("math diagnostics run against the default ROM", allow_module_level=True)
 
 
 def read_i16_array(pyboy, name, count):

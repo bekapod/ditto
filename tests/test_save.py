@@ -1,6 +1,11 @@
+import os
 from pathlib import Path
 
+import pytest
 from pyboy import PyBoy
+
+if os.environ.get("ROM_NAME", "ditto") != "ditto-save":
+    pytest.skip("save tests run against the ditto-save example", allow_module_level=True)
 
 import helpers
 SAVE_FILE = helpers.ROOT / "build" / "ditto.sav"
